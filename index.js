@@ -1,7 +1,9 @@
 const axios = require('axios');
 const buildUrl = require('build-url');
 const sha256 = require('sha256');
-const querystring = require('querystring')
+const querystring = require('querystring');
+const utils = require('./utils').constructor;
+
 
 /**
  * Stex Api Wrapper
@@ -13,6 +15,8 @@ class Btcexa {
      * @type {string}
      */
     #api_url = 'https://api.btcexa.com/api';
+    #ws_market = 'wss://ws.btcexa.com/api/market/ws';
+    #ws_trade = 'wss://ws.btcexa.com/api/trade/ws';
 
     /**
      * @type {string}
@@ -32,20 +36,7 @@ class Btcexa {
         this.#api_key = data['api_key'];
         this.#api_secret = data['api_secret'];
     }
-    static timestamp() {
-        return Number((new Date()).getTime());
-    }
-
-    static objSortByAlp(list) {
-        return Object
-            .entries(list)
-            .sort()
-            .reduce((_sortedObj, [k,v]) => ({
-                ..._sortedObj,
-                [k]: v
-            }), {});
-    }
-
+    
     /**
      *
      * @param method - POST, GET
@@ -58,7 +49,7 @@ class Btcexa {
         let _ss = '\n';
         //let fullPath = queryPath;
         let fullParams = Object.assign(queryParams, bodyParams);
-        let _params = this.constructor.objSortByAlp(fullParams);
+        let _params = utils.objSortByAlp(fullParams);
         let fullParamsStr = buildUrl('', {queryParams: _params});
         let dataCombain = method.toUpperCase() + _ss + queryPath + _ss + fullParamsStr.trim().substring(1) + _ss + this.#api_secret;
 
@@ -75,7 +66,7 @@ class Btcexa {
      * @param bodyParams
      * @return {Promise<*>}
      */
-    async universalTemplate(queryPath, httpMethod, queryParams, bodyParams) {
+    async apiCall(queryPath, httpMethod, queryParams, bodyParams) {
         let uri = buildUrl(this.#api_url, {
             path: queryPath
         });
@@ -115,11 +106,11 @@ class Btcexa {
      * @return {Promise<*>}
      */
     async balanceList() {
-        return await this.universalTemplate(
+        return await this.apiCall(
             'assets/balance_list',
             'get',
             {
-                timestamp: this.constructor.timestamp()
+                timestamp: utils.timestamp()
             },
             {})
     }
@@ -131,7 +122,7 @@ class Btcexa {
      * @return {Promise<*>}
      */
     async ticker(pair) {
-        return await this.universalTemplate(
+        return await this.apiCall(
             'market/ticker',
             'get',
             {
@@ -145,11 +136,11 @@ class Btcexa {
      * @return {Promise<*>}
      */
     async marketDepth() {
-        return await this.universalTemplate(
+        return await this.apiCall(
             'market/depth',
             'get',
             {
-                timestamp: this.constructor.timestamp()
+                timestamp: utils.timestamp()
             },
             {})
     }
@@ -160,7 +151,7 @@ class Btcexa {
      *
      * @param data - {type, pair, amount, rate, order_type}
      */
-    async trade(data) {
+    async orderCreate(data) {
               if(typeof data['amount'] === 'undefined')
                   throw new Error('required field amount not found.');
               if(typeof data['order_type'] === 'undefined')
@@ -175,11 +166,11 @@ class Btcexa {
               if(data.type.toUpperCase() !== "BUY" || data.type.toUpperCase() !== "SELL")
                   throw new Error('Order type must be "BUY" or "SELL" value.');
 
-        return await this.universalTemplate(
+        return await this.apiCall(
             'trade/create_order',
             'post',
             {
-                "timestamp": this.constructor.timestamp().toString()
+                "timestamp": utils.timestamp().toString()
             },
             {
                 "quantity": data.amount,
@@ -189,6 +180,35 @@ class Btcexa {
                 "price": data.rate
             })
     }
+
+    // NOT implemented methods
+
+    async KlineData(data) {}
+    async aggregatedMarketInformation(data) {}
+    async recentlyCompleted(data) {}
+    async activeOrderList(data) {}
+
+    async orderCancel(data) {}
+    async dealList(data) {}
+    async orderList(data) {}
+    //async balanceList() {}
+    async withdrawalCancel() {}
+    async withdrawalCreate() {}
+    async withdrawalAddressCreate() {}
+    async withdrawalAddressDelete() {}
+    async depositList() {}
+    async depositListByAsset() {}
+    async freezeList() {}
+    async withdrawalAddressList() {}
+    async withdrawalList() {}
+    async withdrawalListByAsset() {}
+
+    async wsKline() {}
+    async wsDepth() {}
+    async wsTrade() {}
+    async wsTicker() {}
+    async wsOrders() {}
+    async wsAssets() {}
 
 }
 
