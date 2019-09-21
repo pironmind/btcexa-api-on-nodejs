@@ -8,7 +8,7 @@ const utils = require('./utils').constructor
 const { sockets } = require('./constants')
 
 /**
- * Stex Api Wrapper
+ * @class Btcexa
  */
 class Btcexa {
   /**
