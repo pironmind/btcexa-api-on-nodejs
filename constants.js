@@ -1,12 +1,12 @@
 const sockets = {
   market: {
     allTicker: 'sub.market.all.ticker',
-    trade: type => `sub.market.${type}.trade`,
-    depth: type => `sub.market.${type}.depth`,
-    kline: type => `sub.market.${type}.kline`
+    trade: pair => `sub.market.${pair}.trade`,
+    depth: pair => `sub.market.${pair}.depth`,
+    kline: pair => `sub.market.${pair}.kline`
   },
   trade: {
-    order: type => `sub.trade.${type}.order`
+    order: pair => `sub.trade.${pair}.order`
   }
 }
 
