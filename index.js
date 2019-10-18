@@ -524,25 +524,33 @@ class Btcexa {
   assetsWithdrawalList = (data, timestamp = utils.timestamp()) =>
     this.apiCall('assets/withdrawal_list', 'get', { timestamp, ...data }, {})
 
-  ////////////////////////////////// FIX AUTHENTICATION //////////////////////////////////
-  // wsTradeOrder (handler, wallet_type, status) {
-  //   const client = this.connectSocket(
-  //     this.ws_trade,
-  //     response => handler(Btcexa.dataFromSocket(response)),
-  //     () => {
-  //       Btcexa.sendDataToSocket(client, utils.toJson({
-  //         apikey: this.api_key,
-  //         signature: sha256(`${this.ws_trade}/`),
-  //         timestamp: utils.timestamp()
-  //       }))
-  //
-  //       Btcexa.sendDataToSocket(
-  //         client,
-  //         Btcexa.argumentsToWsRequest(sockets.trade.order(wallet_type), { status }),
-  //       )
-  //     }
-  //   )
-  // }
+  /**
+   * @link https://www.btcexa.com/documents/index_en-US.html#operation/wsActiveOrder
+   *
+   * @param handler
+   * @param wallet_type
+   * @param status
+   * @param timestamp
+   */
+  wsActiveOrder (handler, wallet_type, status, timestamp = utils.timestamp()) {
+    const client = this.connectSocket(
+      this.ws_trade,
+      response => handler(Btcexa.dataFromSocket(response)),
+      () => {
+        Btcexa.sendDataToSocket(client, utils.toJson({
+            apikey: this.api_key,
+            signature: sha256(`GET\n${this.ws_trade}\n${timestamp}\n${this.api_secret}`),
+            timestamp: timestamp
+          })
+        )
+
+        Btcexa.sendDataToSocket(
+          client,
+          Btcexa.argumentsToWsRequest(sockets.trade.order(wallet_type), { status })
+        )
+      }
+    )
+  }
 }
 
 module.exports = Btcexa
